@@ -1,4 +1,5 @@
-﻿var allText = await File.ReadAllTextAsync("Paths2.txt");
+﻿// var allText = await File.ReadAllTextAsync("Paths1.txt"); //42
+var allText = await File.ReadAllTextAsync("Paths2.txt"); //270768
 var nodes = ParseOrbits(allText);
 
 var root = nodes["COM"];
