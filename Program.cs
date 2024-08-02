@@ -1,8 +1,8 @@
-﻿var allText = await File.ReadAllTextAsync("Paths1.txt"); //42
-// var allText = await File.ReadAllTextAsync("Paths2.txt"); //270768
+﻿// var allText = await File.ReadAllTextAsync("Paths1.txt"); //42
+var allText = await File.ReadAllTextAsync("Paths2.txt"); //270768
 var lookup = ParseOrbits(allText);
 
-var total = TotalNumberOfOrbits(lookup);
+var total = TotalNumberOfOrbitsOptimized(lookup);
 Console.WriteLine(total);
 
 
@@ -48,4 +48,39 @@ int TotalNumberOfOrbits(Dictionary<string, string> nodesLookup)
 	}
 
 	return sum;
+}
+
+
+int TotalNumberOfOrbitsOptimized(Dictionary<string, string> nodesLookup)
+{
+	var depthCache = new Dictionary<string, int>();
+
+	var foo = (Dictionary<string, string> lookup) =>
+	{
+		var totalSum = 0;
+		foreach (var node in lookup)
+		{
+			var parent = node.Value;
+			var sum = 0;
+			sum++;
+
+			while (!parent.Equals("COM"))
+			{
+				if (depthCache.ContainsKey(parent))
+				{
+					sum += depthCache[parent];
+					break;
+				}
+				parent = nodesLookup[parent];
+				sum++;
+			}
+
+			totalSum += sum;
+			depthCache.Add(node.Key, sum);
+		}
+
+		return totalSum;
+	};
+
+	return foo(nodesLookup);
 }
