@@ -1,4 +1,6 @@
 ﻿// var allText = await File.ReadAllTextAsync("Paths1.txt"); //42
+using System.ComponentModel;
+
 var allText = await File.ReadAllTextAsync("Paths2.txt"); //270768
 var lookup = ParseOrbits(allText);
 
@@ -9,9 +11,10 @@ Console.WriteLine(total);
 Console.WriteLine("Hello World!");
 
 
-// parse the entire text file into a lookup.
-// We are storing the nodes as lookup[child] = parent since children are unique and multiple
-// children can have same parents.
+/// <summary>
+/// Parse the entire text file into a lookup.
+/// We are storing the nodes as lookup[child] = parent since children are unique and multiple children can have same parents.
+/// </summary>
 Dictionary<string, string> ParseOrbits(string paths)
 {
 	var parsedPaths = paths.Split("\n")
@@ -31,7 +34,11 @@ Dictionary<string, string> ParseOrbits(string paths)
 }
 
 
-// Bottom up calculation. Pick a node and keep going up the tree till you find COM
+/// <summary>
+/// Attempts to find the total depth of the tree in a bottom up fashion.
+/// Refer to the optimized version for better performance.
+/// </summary>
+
 int TotalNumberOfOrbits(Dictionary<string, string> nodesLookup)
 {
 	var sum = 0;
@@ -53,34 +60,69 @@ int TotalNumberOfOrbits(Dictionary<string, string> nodesLookup)
 
 int TotalNumberOfOrbitsOptimized(Dictionary<string, string> nodesLookup)
 {
-	var depthCache = new Dictionary<string, int>();
+	var finder = new DepthFinder();
+	return finder.Find(nodesLookup);
+}
 
-	var foo = (Dictionary<string, string> lookup) =>
+
+/// <summary>
+/// Attempts to find the total depth of the tree in a bottom up fashion.
+/// It also attempts to actively cache the results to optimize execution time.
+/// Refer to the unoptimized version to understand the algorithm better.
+/// </summary>
+public class DepthFinder
+{
+	public Dictionary<string, int> DepthCache = new Dictionary<string, int>();
+	int OuterHits = 0;
+	int InnerHits = 0;
+
+	public int Find(Dictionary<string, string> lookup)
 	{
-		var totalSum = 0;
+		var treeTotal = 0;
 		foreach (var node in lookup)
 		{
-			var parent = node.Value;
-			var sum = 0;
-			sum++;
-
-			while (!parent.Equals("COM"))
+			if (DepthCache.ContainsKey(node.Key))
 			{
-				if (depthCache.ContainsKey(parent))
-				{
-					sum += depthCache[parent];
-					break;
-				}
-				parent = nodesLookup[parent];
-				sum++;
+				OuterHits++; // For stats
+				treeTotal += DepthCache[node.Key];
+				continue;
 			}
 
-			totalSum += sum;
-			depthCache.Add(node.Key, sum);
+			var parent = node.Value;
+			var depthFromParent = FindParentDepth(lookup, parent);
+			var nodeTotal = depthFromParent + 1; // +1 because even if parent returns 0 (COM), the current child still has 1 parent
+			treeTotal += nodeTotal;
+
+			// We already know that depth of current node is not cached and all of its parents are cached.
+			// So, its safe to add the key directly.
+			DepthCache.Add(node.Key, nodeTotal);
 		}
 
-		return totalSum;
-	};
+		Console.WriteLine($"Cache Hits = {InnerHits + OuterHits}");
+		return treeTotal;
+	}
 
-	return foo(nodesLookup);
+	public int FindParentDepth(Dictionary<string, string> lookup, string currentNode)
+	{
+		
+		if (currentNode.Equals("COM"))
+			return 0;
+		
+		if (DepthCache.ContainsKey(currentNode))
+		{
+			InnerHits++; // For stats
+			return DepthCache[currentNode];
+		}
+
+		var parentNode = lookup[currentNode];
+		var depthFromParent = FindParentDepth(lookup, parentNode);
+		// +1 because we have at least 1 depth as parent of caller.
+		var nodeTotal = depthFromParent + 1; 
+
+		// If the node was already added to cache, it would have been found earlier.
+		// Furthermore, FindParentDepth only caches depth of parents. Hence this is a safe operation
+		DepthCache.Add(currentNode, nodeTotal);
+
+		return nodeTotal;
+	}
 }
