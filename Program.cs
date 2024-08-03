@@ -1,6 +1,4 @@
 ﻿// var allText = await File.ReadAllTextAsync("Paths1.txt"); //42
-using System.ComponentModel;
-
 var allText = await File.ReadAllTextAsync("Paths2.txt"); //270768
 var lookup = ParseOrbits(allText);
 
