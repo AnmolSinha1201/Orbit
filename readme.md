@@ -10,6 +10,7 @@ Code challenge
 * Paths2.txt produces 270768
 * Code contains two methods, TotalNumberOfOrbits and TotalNumberOfOrbitsOptimized. Refer to the first method for general understanding of algorithm and second for the implementation of cache.
 * There is another branch called "Recursive" for the recursive implementation. However, it has no optimization for the code.
+* The current approach uses lookup in `lookup[child] = parent` fashion. It has the advantage that lookups are easy and its fairly trivial to find the depth in a bottom up manner. However, it also has a disadvantage that if we want to find the depth of a subtree, we will have to construct a separate lookup for it. This can be mitigated by using classes/stuct which refers to both parents and its children.
 
 
 ### Future Optimization Possibilities
